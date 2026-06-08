@@ -26,11 +26,11 @@
 - существующая сборка не ломается;
 - новые типы не смешаны с React-компонентами.
 
-## TASK-0602. Создать mock-данные и repository для тренеров
+## TASK-0602. Создать backend seed и repository для тренеров
 
 Приоритет: P0  
 Роль: Frontend Engineer  
-Файлы: `src/data/mockData.ts`, `src/services/trainerRepository.ts`
+Файлы: `backend/src/seed-data.js`, `src/services/trainerRepository.ts`
 
 Что сделать:
 
@@ -71,7 +71,7 @@
 
 Приоритет: P0  
 Роль: Frontend Engineer  
-Файлы: `src/pages/AdminPage.tsx`, `src/services/mockApi.ts`
+Файлы: `src/pages/AdminPage.tsx`, `src/services/backendApi.ts`
 
 Что сделать:
 
@@ -91,7 +91,7 @@
 
 Приоритет: P0  
 Роль: Frontend Engineer  
-Файлы: `src/services/trainerRepository.ts`, `src/services/notificationRepository.ts`, `src/services/adminContent.ts`, `src/services/mockApi.ts`, `src/pages/AdminPage.tsx`
+Файлы: `src/services/trainerRepository.ts`, `src/services/notificationRepository.ts`, `src/services/adminContent.ts`, `src/services/backendApi.ts`, `src/pages/AdminPage.tsx`
 
 Что сделать:
 

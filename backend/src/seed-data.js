@@ -1,21 +1,7 @@
-import type {
-  Booking,
-  BookingRule,
-  ContactInfo,
-  ContentBlock,
-  ContentRevision,
-  GalleryItem,
-  Horse,
-  Trainer,
-  MediaAsset,
-  MediaFolder,
-  Review,
-  RulesInfo,
-  Service,
-  SiteContent,
-} from '../types';
+// This file contains the backend seed used only to initialize/reset SQLite.
+// The frontend must not import it or use it as a runtime fallback.
 
-export const siteContent: SiteContent = {
+const siteContent = {
   siteName: 'КТК "Сивка-Бурка"',
   siteSubtitle: 'конно-спортивный клуб',
   homeEyebrow: 'г. Гурьевск · КТК "Сивка-Бурка"',
@@ -55,7 +41,7 @@ export const siteContent: SiteContent = {
     reviews: {
       eyebrow: 'Отзывы',
       title: 'Что говорят клиенты',
-      text: 'Mock-данные показывают формат будущей выдачи отзывов из backend.',
+      text: 'Раздел показывает отзывы клиентов, сохраненные в базе данных.',
     },
     contacts: {
       eyebrow: 'Контакты',
@@ -65,7 +51,7 @@ export const siteContent: SiteContent = {
   },
 };
 
-export const services: Service[] = [
+const services = [
   {
     id: 'riding-lessons',
     title: 'Обучение верховой езде',
@@ -158,7 +144,7 @@ export const services: Service[] = [
   },
 ];
 
-export const horses: Horse[] = [
+const horses = [
   {
     id: 'horse-buran',
     name: 'Буран',
@@ -205,7 +191,7 @@ export const horses: Horse[] = [
   },
 ];
 
-export const trainers: Trainer[] = [
+const trainers = [
   {
     id: 'trainer-ivanova',
     fullName: 'Елена Иванова',
@@ -253,7 +239,7 @@ export const trainers: Trainer[] = [
   },
 ];
 
-export const bookingRules: BookingRule[] = [
+const bookingRules = [
   {
     id: 'rule-working-hours',
     name: 'Рабочие часы',
@@ -310,9 +296,9 @@ export const bookingRules: BookingRule[] = [
   },
 ];
 
-export const bookings: Booking[] = [];
+const bookings = [];
 
-export const reviews: Review[] = [
+const reviews = [
   {
     id: '1',
     clientName: 'Мария',
@@ -336,7 +322,7 @@ export const reviews: Review[] = [
   },
 ];
 
-export const galleryItems: GalleryItem[] = [
+const galleryItems = [
   { id: '1', title: 'Занятие на манеже', category: 'lessons', image: 'lesson' },
   { id: '2', title: 'Прогулка по территории', category: 'walks', image: 'walk' },
   { id: '3', title: 'Семейная фотосессия', category: 'photosessions', image: 'photo' },
@@ -345,7 +331,7 @@ export const galleryItems: GalleryItem[] = [
   { id: '6', title: 'Инструктаж перед занятием', category: 'lessons', image: 'briefing' },
 ];
 
-export const contacts: ContactInfo = {
+const contacts = {
   address: 'г. Гурьевск, территория конно-спортивного клуба "Сивка-Бурка"',
   phone: '+7 (999) 123-45-67',
   email: 'info@orlova-horse.ru',
@@ -360,7 +346,7 @@ export const contacts: ContactInfo = {
   ],
 };
 
-export const rulesInfo: RulesInfo = {
+const rulesInfo = {
   sections: [
     {
       id: 'clothes',
@@ -402,7 +388,7 @@ export const rulesInfo: RulesInfo = {
   ],
 };
 
-export const mediaFolders: MediaFolder[] = [
+const mediaFolders = [
   {
     id: 'folder-home',
     title: 'Главная страница',
@@ -441,7 +427,7 @@ export const mediaFolders: MediaFolder[] = [
   },
 ];
 
-export const mediaAssets: MediaAsset[] = [
+const mediaAssets = [
   {
     id: 'media-home-hero',
     fileName: 'home-hero-placeholder.jpg',
@@ -488,7 +474,7 @@ export const mediaAssets: MediaAsset[] = [
   },
 ];
 
-export const contentBlocks: ContentBlock[] = [
+const contentBlocks = [
   {
     id: 'home-hero',
     pageKey: 'home',
@@ -652,7 +638,7 @@ export const contentBlocks: ContentBlock[] = [
   },
 ];
 
-export const contentRevisions: ContentRevision[] = [
+const contentRevisions = [
   {
     id: 'revision-initial-content',
     entityType: 'page',
@@ -665,3 +651,21 @@ export const contentRevisions: ContentRevision[] = [
     },
   },
 ];
+
+
+module.exports = {
+  siteContent,
+  services,
+  horses,
+  trainers,
+  bookingRules,
+  bookings,
+  reviews,
+  galleryItems,
+  contacts,
+  rulesInfo,
+  mediaFolders,
+  mediaAssets,
+  contentBlocks,
+  contentRevisions,
+};

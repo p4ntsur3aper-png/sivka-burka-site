@@ -380,7 +380,7 @@ interface HorseWorkload {
 ### TASK-0802. Создать managerRepository
 
 Приоритет: P0  
-Файлы: `src/services/managerRepository.ts`, `src/services/mockApi.ts`
+Файлы: `src/services/managerRepository.ts`, `src/services/backendApi.ts`
 
 Что сделать:
 
@@ -485,7 +485,7 @@ interface HorseWorkload {
 ### TASK-0809. Перестроить уведомления вокруг жизненного цикла заявки
 
 Приоритет: P1  
-Файлы: `src/services/notificationRepository.ts`, `src/services/mockApi.ts`
+Файлы: `src/services/notificationRepository.ts`, `src/services/backendApi.ts`
 
 Что сделать:
 

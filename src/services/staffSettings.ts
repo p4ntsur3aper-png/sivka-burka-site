@@ -1,4 +1,3 @@
-import { trainers as initialTrainers } from '../data/mockData';
 import type { Notification, StaffAccount, StaffNotificationSettings, Trainer, UserRole } from '../types';
 
 const STAFF_ACCOUNTS_KEY = 'orlov_staff_accounts';
@@ -116,18 +115,18 @@ export function syncStaffAccountsWithTrainers(accounts: StaffAccount[], trainers
   return [...synced, ...customAccounts.map(normalizeAccount)];
 }
 
-export function getStaffAccounts(trainers: Trainer[] = initialTrainers): StaffAccount[] {
-  const stored = readStorage<StaffAccount[]>(STAFF_ACCOUNTS_KEY, defaultAccounts(trainers));
-  return syncStaffAccountsWithTrainers(stored, trainers);
+export function getStaffAccounts(trainers: Trainer[] = []): StaffAccount[] {
+  return syncStaffAccountsWithTrainers(defaultAccounts(trainers), trainers);
 }
 
 export function saveStaffAccounts(accounts: StaffAccount[]) {
-  writeStorage(STAFF_ACCOUNTS_KEY, accounts.map(normalizeAccount));
+  void accounts;
+  window.dispatchEvent(new Event('orlov-staff-settings-updated'));
 }
 
 export function resetStaffAccounts() {
   window.localStorage.removeItem(STAFF_ACCOUNTS_KEY);
-  window.sessionStorage.removeItem(BROWSER_NOTIFIED_KEY);
+  window.localStorage.removeItem(BROWSER_NOTIFIED_KEY);
   window.dispatchEvent(new Event('orlov-staff-settings-updated'));
 }
 

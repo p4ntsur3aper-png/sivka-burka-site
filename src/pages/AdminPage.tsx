@@ -4,6 +4,7 @@ import { ImageUploadButton } from '../components/admin/ImageUploadButton';
 import { Button, ButtonLink } from '../components/ui/Button';
 import { SectionTitle } from '../components/ui/SectionTitle';
 import {
+  applyEditableSnapshot,
   createEmptyBookingRule,
   createEmptyGalleryItem,
   createEmptyHorse,
@@ -22,26 +23,13 @@ import {
   isAdminAuthorized,
   loginAdmin,
   logoutAdmin,
-  resetEditableContent,
-  saveEditableBookingRules,
-  saveEditableBookings,
-  saveEditableContacts,
-  saveEditableGalleryItems,
-  saveEditableHorses,
-  saveEditableTrainers,
-  saveEditableReviews,
-  saveEditableRulesInfo,
-  saveEditableServices,
-  saveEditableSiteContent,
 } from '../services/adminContent';
 import { checkBookingAvailability, getAvailableTimeSlots } from '../services/availabilityService';
 import { assignBookingTrainer, updateBookingTrainerStatus } from '../services/api';
 import { getAdminSnapshot, resetBackendData, saveAdminSnapshot, type AdminSnapshot } from '../services/backendApi';
-import { env } from '../services/env';
 import {
   getStaffAccounts,
   requestBrowserNotificationPermission,
-  saveStaffAccounts,
   syncStaffAccountsWithTrainers,
 } from '../services/staffSettings';
 import type { Booking, BookingRule, BookingRuleType, BookingStatus, ContactInfo, GalleryItem, Horse, HorseStatus, Review, RulesInfo, Service, SiteContent, StaffAccount, StaffNotificationSettings, Trainer, TrainerStatus } from '../types';
@@ -179,6 +167,7 @@ export function AdminPage() {
   const previewSlots = calendarServiceId ? getAvailableTimeSlots(calendarServiceId, calendarDate) : [];
 
   const applySnapshot = (snapshot: AdminSnapshot) => {
+    applyEditableSnapshot(snapshot);
     setSiteContent(snapshot.siteContent);
     setServices(snapshot.services);
     setGalleryItems(snapshot.galleryItems);
@@ -194,7 +183,7 @@ export function AdminPage() {
   };
 
   useEffect(() => {
-    if (!authorized || env.useMockApi) return;
+    if (!authorized) return;
     let cancelled = false;
 
     const loadSnapshot = async () => {
@@ -225,73 +214,37 @@ export function AdminPage() {
   const saveAll = async () => {
     const syncedStaffAccounts = syncStaffAccountsWithTrainers(staffAccounts, trainers);
 
-    if (!env.useMockApi) {
-      try {
-        const response = await saveAdminSnapshot({
-          siteContent,
-          services,
-          galleryItems,
-          horses,
-          trainers,
-          staffAccounts: syncedStaffAccounts,
-          bookings,
-          bookingRules,
-          reviews,
-          contacts,
-          rulesInfo,
-        });
-        applySnapshot(response.data);
-        setSavedMessage('Изменения сохранены в SQLite через backend.');
-      } catch {
-        setSavedMessage('Не удалось сохранить изменения в backend.');
-      }
-      window.setTimeout(() => setSavedMessage(''), 3500);
-      return;
+    try {
+      const response = await saveAdminSnapshot({
+        siteContent,
+        services,
+        galleryItems,
+        horses,
+        trainers,
+        staffAccounts: syncedStaffAccounts,
+        bookings,
+        bookingRules,
+        reviews,
+        contacts,
+        rulesInfo,
+      });
+      applySnapshot(response.data);
+      setSavedMessage('Изменения сохранены в SQLite через backend.');
+    } catch {
+      setSavedMessage('Не удалось сохранить изменения в backend.');
     }
-
-    saveEditableServices(services);
-    saveEditableGalleryItems(galleryItems);
-    saveEditableHorses(horses);
-    saveEditableTrainers(trainers);
-    saveStaffAccounts(syncedStaffAccounts);
-    setStaffAccounts(syncedStaffAccounts);
-    saveEditableBookings(bookings);
-    saveEditableBookingRules(bookingRules);
-    saveEditableReviews(reviews);
-    saveEditableContacts(contacts);
-    saveEditableRulesInfo(rulesInfo);
-    saveEditableSiteContent(siteContent);
-    setSavedMessage('Изменения сохранены в браузере и уже используются в клиентской форме.');
     window.setTimeout(() => setSavedMessage(''), 3500);
   };
 
   const resetAll = async () => {
-    if (!env.useMockApi) {
-      try {
-        await resetBackendData();
-        const response = await getAdminSnapshot();
-        applySnapshot(response.data);
-        setSavedMessage('Данные в SQLite восстановлены из seed.');
-      } catch {
-        setSavedMessage('Не удалось восстановить данные backend.');
-      }
-      window.setTimeout(() => setSavedMessage(''), 3500);
-      return;
+    try {
+      await resetBackendData();
+      const response = await getAdminSnapshot();
+      applySnapshot(response.data);
+      setSavedMessage('Данные в SQLite восстановлены из backend seed.');
+    } catch {
+      setSavedMessage('Не удалось восстановить данные backend.');
     }
-
-    resetEditableContent();
-    setServices(getEditableServices());
-    setGalleryItems(getEditableGalleryItems());
-    setHorses(getEditableHorses());
-    setTrainers(getEditableTrainers());
-    setStaffAccounts(getStaffAccounts(getEditableTrainers()));
-    setBookings(getEditableBookings());
-    setBookingRules(getEditableBookingRules());
-    setReviews(getEditableReviews());
-    setContacts(getEditableContacts());
-    setRulesInfo(getEditableRulesInfo());
-    setSiteContent(getEditableSiteContent());
-    setSavedMessage('Демо-данные восстановлены.');
     window.setTimeout(() => setSavedMessage(''), 3500);
   };
 
@@ -658,8 +611,8 @@ export function AdminPage() {
         <div className="admin-list">
           <div className="admin-list-header">
             <h2>Оформление главной страницы</h2>
-            <Button variant="secondary" onClick={() => saveEditableSiteContent(siteContent)}>
-              <Save size={18} /> Сохранить только оформление
+            <Button variant="secondary" onClick={() => void saveAll()}>
+              <Save size={18} /> Сохранить оформление
             </Button>
           </div>
 
@@ -906,11 +859,11 @@ export function AdminPage() {
                     />
                   </label>
                   <label>
-                    <span>{env.useMockApi ? 'Пароль' : 'Новый пароль'}</span>
+                    <span>Новый пароль</span>
                     <input
                       type="password"
                       value={account.password}
-                      placeholder={env.useMockApi ? undefined : 'Оставьте пустым, чтобы не менять'}
+                      placeholder="Оставьте пустым, чтобы не менять"
                       onChange={(event) => updateStaffAccount(account.id, 'password', event.target.value)}
                     />
                   </label>
@@ -1113,7 +1066,7 @@ export function AdminPage() {
         <div className="admin-list admin-content-list">
           <div className="admin-list-header">
             <h2>Контент: контакты, отзывы, правила и FAQ</h2>
-            <Button variant="secondary" onClick={() => { saveEditableContacts(contacts); setSavedMessage('Контакты сохранены.'); window.setTimeout(() => setSavedMessage(''), 2500); }}>
+            <Button variant="secondary" onClick={() => void saveAll()}>
               <Save size={18} /> Сохранить контакты
             </Button>
           </div>
@@ -1187,7 +1140,7 @@ export function AdminPage() {
           <div className="admin-list-header">
             <h3>Отзывы</h3>
             <div className="admin-actions">
-              <Button variant="secondary" onClick={() => { saveEditableReviews(reviews); setSavedMessage('Отзывы сохранены.'); window.setTimeout(() => setSavedMessage(''), 2500); }}>
+              <Button variant="secondary" onClick={() => void saveAll()}>
                 <Save size={18} /> Сохранить отзывы
               </Button>
               <Button onClick={() => setReviews((current) => [{ id: `review-${Date.now()}`, clientName: 'Новый клиент', text: 'Новый отзыв', date: new Date().toLocaleDateString('ru-RU'), rating: 5 }, ...current])}>
@@ -1214,7 +1167,7 @@ export function AdminPage() {
           <div className="admin-list-header">
             <h3>Разделы правил</h3>
             <div className="admin-actions">
-              <Button variant="secondary" onClick={() => { saveEditableRulesInfo(rulesInfo); setSavedMessage('Правила и FAQ сохранены.'); window.setTimeout(() => setSavedMessage(''), 2500); }}>
+              <Button variant="secondary" onClick={() => void saveAll()}>
                 <Save size={18} /> Сохранить правила и FAQ
               </Button>
               <Button onClick={() => setRulesInfo((current) => ({ ...current, sections: [{ id: `section-${Date.now()}`, title: 'Новый раздел', items: ['Новый пункт'] }, ...current.sections] }))}>

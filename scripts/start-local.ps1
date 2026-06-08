@@ -99,8 +99,7 @@ try {
 
   $envLocalPath = Join-Path $ProjectRoot ".env.local"
   $envLocalContent = @(
-    "VITE_API_BASE_URL=$apiBaseUrl",
-    "VITE_USE_MOCK_API=false"
+    "VITE_API_BASE_URL=$apiBaseUrl"
   ) -join [Environment]::NewLine
   Set-Content -LiteralPath $envLocalPath -Value ($envLocalContent + [Environment]::NewLine) -Encoding UTF8
 
@@ -119,7 +118,6 @@ Set-Location -LiteralPath $rootLiteral;
 `$Host.UI.RawUI.WindowTitle = 'Sivka-Burka Frontend';
 Set-Location -LiteralPath $rootLiteral;
 `$env:VITE_API_BASE_URL = '$apiBaseUrl';
-`$env:VITE_USE_MOCK_API = 'false';
 & $npmLiteral run dev -- --host 127.0.0.1 --port $frontendPort;
 "@
 

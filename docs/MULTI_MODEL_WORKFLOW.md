@@ -123,7 +123,7 @@
 Лучше распределять зоны:
 
 - типы и контракты: `src/types/index.ts`, `docs/API_CONTRACT.md`;
-- mock-данные: `src/data/mockData.ts`;
+- исходные seed-данные: `backend/src/seed-data.js`;
 - бизнес-логика: `src/services/*`;
 - публичные страницы: `src/pages/*`;
 - админ-компоненты: `src/components/admin/*`;
@@ -153,4 +153,3 @@
 - mock-логика вынесена в `services` или `data`;
 - новая функциональность описана в документации или задачах;
 - нет ухудшения мобильной версии.
-

@@ -3,7 +3,7 @@
 REST backend for the existing Vite frontend.
 
 It uses Node.js built-ins and SQLite through `node:sqlite`, so the diploma version has a real local database without an external DBMS. Use Node.js 22 LTS or newer.
-Initial data is loaded from `src/data/mockData.ts` and persisted to `backend/.data/sivka_burka.sqlite`.
+Initial data is loaded from `backend/src/seed-data.js` and persisted to `backend/.data/sivka_burka.sqlite`.
 
 ## Easiest Local Start
 
@@ -38,7 +38,6 @@ Frontend env for real backend mode:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
-VITE_USE_MOCK_API=false
 ```
 
 ## Test

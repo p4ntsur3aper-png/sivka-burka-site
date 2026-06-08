@@ -20,7 +20,7 @@ import { StaffLoginPage } from '../pages/StaffLoginPage';
 import { TrainerBookingDetailsPage } from '../pages/TrainerBookingDetailsPage';
 import { TrainerLoginPage } from '../pages/TrainerLoginPage';
 import { TrainerSchedulePage } from '../pages/TrainerSchedulePage';
-import { getEditableSiteContent } from '../services/adminContent';
+import { clearLegacyBrowserData, getEditableSiteContent, hydrateEditableContentFromBackend } from '../services/adminContent';
 
 function applySiteTheme() {
   const content = getEditableSiteContent();
@@ -32,7 +32,11 @@ function applySiteTheme() {
 
 export function App() {
   useEffect(() => {
+    clearLegacyBrowserData();
     applySiteTheme();
+    void hydrateEditableContentFromBackend()
+      .then(applySiteTheme)
+      .catch(() => undefined);
     window.addEventListener('orlov-content-updated', applySiteTheme);
     return () => window.removeEventListener('orlov-content-updated', applySiteTheme);
   }, []);

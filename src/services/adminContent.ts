@@ -1,19 +1,5 @@
-import {
-  bookingRules as initialBookingRules,
-  bookings as initialBookings,
-  contacts as initialContacts,
-  reviews as initialReviews,
-  rulesInfo as initialRulesInfo,
-  galleryItems as initialGalleryItems,
-  horses as initialHorses,
-  trainers as initialTrainers,
-  services as initialServices,
-  siteContent as initialSiteContent,
-} from '../data/mockData';
 import type { Booking, BookingRule, ContactInfo, GalleryItem, Horse, Review, RulesInfo, Service, SiteContent, Trainer } from '../types';
-import { loginStaff, logoutStaff } from './backendApi';
-import { env } from './env';
-import { resetStaffAccounts, verifyAdminCredentials } from './staffSettings';
+import { getSiteContent, loginStaff, logoutStaff, type AdminSnapshot } from './backendApi';
 
 const SERVICES_KEY = 'orlov_admin_services';
 const GALLERY_KEY = 'orlov_admin_gallery';
@@ -30,20 +16,92 @@ const EDIT_MODE_KEY = 'orlov_admin_edit_mode';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
-function readStorage<T>(key: string, fallback: T): T {
-  const rawValue = window.localStorage.getItem(key);
-  if (!rawValue) return clone(fallback);
+const LEGACY_LOCAL_STORAGE_KEYS = [
+  SERVICES_KEY,
+  GALLERY_KEY,
+  HORSES_KEY,
+  TRAINERS_KEY,
+  BOOKINGS_KEY,
+  BOOKING_RULES_KEY,
+  SITE_CONTENT_KEY,
+  REVIEWS_KEY,
+  CONTACTS_KEY,
+  RULES_INFO_KEY,
+  'orlov_staff_accounts',
+  'orlov_notifications',
+  'orlov_content_blocks',
+  'orlov_media_assets',
+  'orlov_media_folders',
+  'orlov_content_revisions',
+  'orlov_browser_notified_ids',
+];
 
-  try {
-    return JSON.parse(rawValue) as T;
-  } catch {
-    window.localStorage.removeItem(key);
-    return clone(fallback);
-  }
+const fallbackSiteContent: SiteContent = {
+  siteName: 'КТК "Сивка-Бурка"',
+  siteSubtitle: 'конно-спортивный клуб',
+  homeEyebrow: 'г. Гурьевск · КТК "Сивка-Бурка"',
+  homeHeroTitle: 'Конно-спортивные услуги для обучения, отдыха и семейного досуга',
+  homeHeroText: 'Выберите подходящий формат занятия и оставьте предварительную заявку.',
+  homeHeroImage: 'linear-gradient(135deg, #24482d 0%, #7b5b38 48%, #d9bd89 100%)',
+  homeHeroImagePosition: 'center',
+  primaryColor: '#1f4a2a',
+  darkColor: '#14351f',
+  accentColor: '#a86f45',
+  popularServicesTitle: 'Популярные направления',
+  popularServicesText: 'Каталог услуг загружается из базы данных.',
+  trustTitle: 'Важно перед посещением',
+  trustText: 'Перед занятием проводится инструктаж, а формат подбирается под возраст и подготовку клиента.',
+  reviewsTitle: 'Отзывы клиентов',
+  pageCopies: {
+    services: { eyebrow: 'Каталог', title: 'Услуги конно-спортивного клуба', text: 'Выберите формат и оставьте предварительную заявку.' },
+    booking: { eyebrow: 'Запись', title: 'Предварительная заявка на занятие', text: 'Заполните форму, и администратор свяжется с вами для подтверждения времени.' },
+    rules: { eyebrow: 'Правила', title: 'Безопасность и подготовка к посещению', text: 'Короткие требования, которые помогают сделать занятие спокойным и предсказуемым.' },
+    gallery: { eyebrow: 'Галерея', title: 'Фотографии занятий, прогулок и территории', text: 'Разделы оформлены как альбомы.' },
+    reviews: { eyebrow: 'Отзывы', title: 'Что говорят клиенты', text: 'Отзывы клиентов клуба.' },
+    contacts: { eyebrow: 'Контакты', title: 'Связь и адрес предприятия', text: 'Оставить заявку можно через форму, а уточнить детали - по телефону.' },
+  },
+};
+
+const fallbackContacts: ContactInfo = {
+  address: '',
+  phone: '',
+  email: '',
+  requestSchedule: '',
+  messengers: [],
+  socialLinks: [],
+};
+
+const fallbackRulesInfo: RulesInfo = {
+  sections: [],
+  faq: [],
+};
+
+let editableState = {
+  siteContent: fallbackSiteContent,
+  services: [] as Service[],
+  galleryItems: [] as GalleryItem[],
+  horses: [] as Horse[],
+  trainers: [] as Trainer[],
+  bookings: [] as Booking[],
+  bookingRules: [] as BookingRule[],
+  reviews: [] as Review[],
+  contacts: fallbackContacts,
+  rulesInfo: fallbackRulesInfo,
+};
+
+function emitContentUpdated() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('orlov-content-updated'));
 }
 
-function writeStorage<T>(key: string, value: T) {
-  window.localStorage.setItem(key, JSON.stringify(value));
+function normalizeSiteContent(content: SiteContent): SiteContent {
+  return {
+    ...fallbackSiteContent,
+    ...content,
+    pageCopies: {
+      ...fallbackSiteContent.pageCopies,
+      ...(content.pageCopies || {}),
+    },
+  };
 }
 
 function normalizeService(service: Service): Service {
@@ -54,128 +112,145 @@ function normalizeService(service: Service): Service {
   };
 }
 
+export function clearLegacyBrowserData() {
+  if (typeof window === 'undefined') return;
+  LEGACY_LOCAL_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+}
+
+export function applyEditableSnapshot(snapshot: AdminSnapshot) {
+  editableState = {
+    siteContent: normalizeSiteContent(snapshot.siteContent),
+    services: snapshot.services.map(normalizeService),
+    galleryItems: clone(snapshot.galleryItems),
+    horses: clone(snapshot.horses),
+    trainers: clone(snapshot.trainers),
+    bookings: clone(snapshot.bookings),
+    bookingRules: clone(snapshot.bookingRules),
+    reviews: clone(snapshot.reviews),
+    contacts: clone(snapshot.contacts),
+    rulesInfo: clone(snapshot.rulesInfo),
+  };
+  emitContentUpdated();
+}
+
+export async function hydrateEditableContentFromBackend() {
+  const response = await getSiteContent();
+  editableState = {
+    ...editableState,
+    siteContent: normalizeSiteContent(response.data),
+  };
+  emitContentUpdated();
+  return editableState.siteContent;
+}
+
 export function getEditableServices(): Service[] {
-  return readStorage<Service[]>(SERVICES_KEY, initialServices).map(normalizeService);
+  return clone(editableState.services).map(normalizeService);
 }
 
 export function getEditableSiteContent(): SiteContent {
-  const savedContent = readStorage<Partial<SiteContent>>(SITE_CONTENT_KEY, initialSiteContent);
-  const migratedContent = { ...savedContent };
-  if (migratedContent.siteName === 'ИП Орлова Н.И.') migratedContent.siteName = initialSiteContent.siteName;
-  if (migratedContent.siteSubtitle === 'конно-спортивные услуги') migratedContent.siteSubtitle = initialSiteContent.siteSubtitle;
-  if (migratedContent.homeEyebrow === 'г. Гурьевск · ИП Орлова Н.И.') migratedContent.homeEyebrow = initialSiteContent.homeEyebrow;
-  return {
-    ...initialSiteContent,
-    ...migratedContent,
-    pageCopies: {
-      ...initialSiteContent.pageCopies,
-      ...(migratedContent.pageCopies || {}),
-    },
-  };
+  return clone(editableState.siteContent);
 }
 
 export function saveEditableSiteContent(content: SiteContent) {
-  writeStorage(SITE_CONTENT_KEY, content);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, siteContent: normalizeSiteContent(content) };
+  emitContentUpdated();
 }
 
 export function saveEditableServices(items: Service[]) {
-  writeStorage(SERVICES_KEY, items.map(normalizeService));
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, services: items.map(normalizeService) };
+  emitContentUpdated();
 }
 
 export function getEditableGalleryItems(): GalleryItem[] {
-  return readStorage(GALLERY_KEY, initialGalleryItems);
+  return clone(editableState.galleryItems);
 }
 
 export function saveEditableGalleryItems(items: GalleryItem[]) {
-  writeStorage(GALLERY_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, galleryItems: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableHorses(): Horse[] {
-  return readStorage<Horse[]>(HORSES_KEY, initialHorses).map((horse) => ({
+  return clone(editableState.horses).map((horse) => ({
     ...horse,
     image: horse.image || 'linear-gradient(135deg, #3d2c1f, #b58a5a)',
   }));
 }
 
 export function saveEditableHorses(items: Horse[]) {
-  writeStorage(HORSES_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, horses: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableTrainers(): Trainer[] {
-  return readStorage<Trainer[]>(TRAINERS_KEY, initialTrainers);
+  return clone(editableState.trainers);
 }
 
 export function saveEditableTrainers(items: Trainer[]) {
-  writeStorage(TRAINERS_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, trainers: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableBookings(): Booking[] {
-  return readStorage(BOOKINGS_KEY, initialBookings);
+  return clone(editableState.bookings);
 }
 
 export function saveEditableBookings(items: Booking[]) {
-  writeStorage(BOOKINGS_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, bookings: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableBookingRules(): BookingRule[] {
-  return readStorage(BOOKING_RULES_KEY, initialBookingRules);
+  return clone(editableState.bookingRules);
 }
 
 export function saveEditableBookingRules(items: BookingRule[]) {
-  writeStorage(BOOKING_RULES_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, bookingRules: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableReviews(): Review[] {
-  return readStorage<Review[]>(REVIEWS_KEY, initialReviews);
+  return clone(editableState.reviews);
 }
 
 export function saveEditableReviews(items: Review[]) {
-  writeStorage(REVIEWS_KEY, items);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, reviews: clone(items) };
+  emitContentUpdated();
 }
 
 export function getEditableContacts(): ContactInfo {
-  const contacts = readStorage<ContactInfo>(CONTACTS_KEY, initialContacts);
-  if (contacts.address === 'г. Гурьевск, территория конно-спортивного клуба ИП Орлова Н.И.') {
-    return { ...contacts, address: initialContacts.address };
-  }
-  return contacts;
+  return clone(editableState.contacts);
 }
 
 export function saveEditableContacts(value: ContactInfo) {
-  writeStorage(CONTACTS_KEY, value);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, contacts: clone(value) };
+  emitContentUpdated();
 }
 
 export function getEditableRulesInfo(): RulesInfo {
-  return readStorage<RulesInfo>(RULES_INFO_KEY, initialRulesInfo);
+  return clone(editableState.rulesInfo);
 }
 
 export function saveEditableRulesInfo(value: RulesInfo) {
-  writeStorage(RULES_INFO_KEY, value);
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  editableState = { ...editableState, rulesInfo: clone(value) };
+  emitContentUpdated();
 }
 
 export function resetEditableContent() {
-  window.localStorage.removeItem(SERVICES_KEY);
-  window.localStorage.removeItem(GALLERY_KEY);
-  window.localStorage.removeItem(HORSES_KEY);
-  window.localStorage.removeItem(TRAINERS_KEY);
-  window.localStorage.removeItem(BOOKINGS_KEY);
-  window.localStorage.removeItem(BOOKING_RULES_KEY);
-  window.localStorage.removeItem(SITE_CONTENT_KEY);
-  window.localStorage.removeItem(REVIEWS_KEY);
-  window.localStorage.removeItem(CONTACTS_KEY);
-  window.localStorage.removeItem(RULES_INFO_KEY);
-  resetStaffAccounts();
-  window.dispatchEvent(new Event('orlov-content-updated'));
+  clearLegacyBrowserData();
+  editableState = {
+    siteContent: fallbackSiteContent,
+    services: [],
+    galleryItems: [],
+    horses: [],
+    trainers: [],
+    bookings: [],
+    bookingRules: [],
+    reviews: [],
+    contacts: fallbackContacts,
+    rulesInfo: fallbackRulesInfo,
+  };
+  emitContentUpdated();
 }
 
 export function isAdminAuthorized() {
@@ -196,28 +271,19 @@ export function setAdminEditMode(enabled: boolean) {
 }
 
 export async function loginAdmin(login: string, password: string) {
-  if (!env.useMockApi) {
-    try {
-      const response = await loginStaff({ role: 'admin', login, password });
-      if (response.data.role !== 'admin') return false;
-      window.sessionStorage.setItem(SESSION_KEY, 'true');
-      window.dispatchEvent(new Event('orlov-admin-state-updated'));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  const success = verifyAdminCredentials(login, password);
-  if (success) {
+  try {
+    const response = await loginStaff({ role: 'admin', login, password });
+    if (response.data.role !== 'admin') return false;
     window.sessionStorage.setItem(SESSION_KEY, 'true');
     window.dispatchEvent(new Event('orlov-admin-state-updated'));
+    return true;
+  } catch {
+    return false;
   }
-  return success;
 }
 
 export function logoutAdmin() {
-  if (!env.useMockApi) void logoutStaff().catch(() => undefined);
+  void logoutStaff().catch(() => undefined);
   window.sessionStorage.removeItem(SESSION_KEY);
   window.sessionStorage.removeItem(EDIT_MODE_KEY);
   window.dispatchEvent(new Event('orlov-admin-state-updated'));

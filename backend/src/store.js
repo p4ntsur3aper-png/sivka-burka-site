@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
-const { loadFrontendSeed } = require('./seed');
+const { loadBackendSeed } = require('./seed');
 const { hashPassword, hashToken, verifyPassword } = require('./security');
 
 const DATA_DIR = path.resolve(__dirname, '../.data');
@@ -474,7 +474,7 @@ function clearDomainData({ includeSessions = false } = {}) {
 }
 
 function seedDatabase({ includeSessions = false } = {}) {
-  const seed = loadFrontendSeed();
+  const seed = loadBackendSeed();
   clearDomainData({ includeSessions });
 
   SETTINGS_KEYS.forEach((key) => writeSetting(key, seed[key]));
@@ -492,7 +492,7 @@ function seedIfNeeded() {
 
 function loadDb() {
   getDatabase();
-  const seed = loadFrontendSeed();
+  const seed = loadBackendSeed();
   const db = {
     version: Number(getMeta('schema_version') || 1),
     createdAt: getMeta('created_at') || nowIso(),

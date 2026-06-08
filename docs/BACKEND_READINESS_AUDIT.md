@@ -1,46 +1,31 @@
 # Backend Readiness Audit
 
-Date: 2026-06-01
+Date: 2026-06-08
 
 ## Current status
 
-- Frontend is functionally complete for demo flows.
-- All UI data access now routes through `src/services/api.ts`.
-- Mock mode is controlled via env:
-  - `VITE_USE_MOCK_API=true` uses `mockApi`.
-  - `VITE_USE_MOCK_API=false` requires backend adapter implementation.
+- Frontend data access routes through `src/services/api.ts`.
+- `src/services/api.ts` exports backend methods directly.
+- Runtime frontend data no longer comes from browser seed files.
+- SQLite is the source of truth for content, resources, bookings, staff accounts, sessions, and notifications.
+- Initial/reset data is stored in `backend/src/seed-data.js`.
 
-## Frontend-only constraints found
-
-1. Booking date window is hardcoded in `src/services/availabilityService.ts`:
-   - `getAvailableDates` currently uses 21 days.
-2. Availability decision is still frontend-authoritative in mock mode:
-   - horse constraints;
-   - trainer constraints;
-   - closed days and working hours;
-   - rest intervals.
-3. Authentication is mock:
-   - admin/manager/trainer credentials are frontend checks.
-4. Data persistence is mock:
-   - content/resources/bookings in browser storage.
-
-## Required backend ownership
+## Backend ownership
 
 1. Availability engine:
    - dates, slots, reasons, conflicts.
 2. Booking lifecycle:
-   - create/confirm/reject/cancel/clarify.
+   - create, confirm, reject, cancel, clarification, trainer assignment.
 3. Role auth and sessions:
    - `admin`, `manager`, `trainer`.
 4. Content/media persistence:
-   - services/gallery/contacts/rules/reviews.
+   - services, gallery, contacts, rules, reviews, content blocks, media folders and media assets.
 5. Notification generation:
-   - manager/trainer event feed.
+   - administrator and manager event feed.
 
 ## Frontend integration boundaries
 
-1. Components must not call storage directly.
-2. Components call only `src/services/api.ts`.
-3. Backend adapter will replace mock API method-by-method.
-4. UI messages for errors are ready; backend must return stable error payloads.
-
+1. Components use service modules, not browser storage.
+2. Public pages call backend endpoints through `src/services/api.ts` and content repositories.
+3. Admin panel saves one backend snapshot to SQLite.
+4. Employee login uses backend password hashes and HttpOnly cookie sessions.

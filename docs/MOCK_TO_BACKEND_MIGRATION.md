@@ -1,41 +1,27 @@
-# Mock to Backend Migration
+# Backend Migration Status
 
-## Goal
+## Result
 
-Switch from browser-storage mock backend to real API without page rewrites.
+The project now runs as a client-server application:
 
-## Current architecture
+- frontend calls backend through `src/services/api.ts`;
+- backend persists data in SQLite;
+- initial/reset data lives in `backend/src/seed-data.js`;
+- employee auth uses backend password hashes and HttpOnly cookie sessions;
+- old browser keys are cleared on frontend startup.
 
-- UI calls `src/services/api.ts`.
-- `api.ts` routes calls to `mockApi` when `VITE_USE_MOCK_API=true`.
-- Backend mode is blocked intentionally until adapters are implemented.
+## Runtime data flow
 
-## Migration steps
+1. Public pages request services, content, reviews, contacts, gallery and rules from backend endpoints.
+2. Booking form sends requests to `POST /api/bookings` and receives availability from backend checks.
+3. Admin panel loads and saves `GET/PATCH /api/admin/snapshot`.
+4. Manager and trainer workspaces use protected backend routes.
+5. Notifications are loaded and marked as read through backend routes.
 
-1. Implement backend adapter module:
-   - `src/services/backendApi.ts`
-2. Wire `api.ts`:
-   - if mock mode -> `mockApi`
-   - else -> `backendApi`
-3. Keep method signatures identical to current `api.ts` exports.
-4. Validate flows:
-   - services/catalog/details;
-   - booking form;
-   - manager calendar/bookings;
-   - trainer schedule/details;
-   - notifications.
+## Verification checklist
 
-## Non-negotiable backend parity
-
-1. Slot reasons must be returned as plain user-readable strings.
-2. Booking statuses and trainer statuses must match frontend enums.
-3. Date/time format must stay ISO-compatible with current UI.
-4. IDs must remain stable string values.
-
-## Cutover checklist
-
-1. Set `VITE_USE_MOCK_API=false`.
-2. Set `VITE_API_BASE_URL=<backend>/api`.
-3. Smoke test all pages.
-4. Disable demo credentials and switch to backend auth.
-
+1. Run `npm run build`.
+2. Run `npm.cmd --prefix backend test`.
+3. Start the app with `npm run start:local`.
+4. Confirm that new bookings remain after frontend restart.
+5. Confirm that admin changes remain after frontend restart and are stored in SQLite.

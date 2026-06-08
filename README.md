@@ -52,7 +52,6 @@ npm run backend:dev
 
 ```powershell
 $env:VITE_API_BASE_URL="http://127.0.0.1:8090/api"
-$env:VITE_USE_MOCK_API="false"
 npm run dev -- --host 127.0.0.1 --port 5174
 ```
 
@@ -63,6 +62,7 @@ npm run dev -- --host 127.0.0.1 --port 5174
 - `start-local.bat` - простой запуск двойным кликом.
 - `scripts/start-local.ps1` - основной PowerShell-запускатель.
 - `backend/src/server.js` - backend API.
+- `backend/src/seed-data.js` - исходные данные для первого создания или сброса SQLite.
 - `backend/.data/sivka_burka.sqlite` - локальная база данных после первого запуска.
 - `.env.example` - пример переменных окружения для frontend.
 - `docs/` - техническая документация по backend, API и демонстрации.

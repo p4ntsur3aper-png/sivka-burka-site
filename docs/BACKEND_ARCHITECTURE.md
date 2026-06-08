@@ -15,7 +15,7 @@ The backend supports a horse club web application with four workflows:
 - SQLite persistence: `backend/src/store.js`
 - Availability rules: `backend/src/availability.js`
 - Password and token utilities: `backend/src/security.js`
-- Seed source: `src/data/mockData.ts`
+- Seed source: `backend/src/seed-data.js`
 
 The local database file is `backend/.data/sivka_burka.sqlite`. It is ignored by git.
 

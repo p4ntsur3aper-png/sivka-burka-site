@@ -1,21 +1,11 @@
 # Environment Setup
 
-## Local frontend with mock backend
+## Local frontend with SQLite backend
 
 Use:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
-VITE_USE_MOCK_API=true
-```
-
-## Local frontend with real SQLite backend
-
-Use:
-
-```env
-VITE_API_BASE_URL=http://localhost:8080/api
-VITE_USE_MOCK_API=false
 ```
 
 Start the local backend from the project root:
@@ -34,7 +24,6 @@ npm run backend:dev
 
 ```env
 VITE_API_BASE_URL=http://localhost:8090/api
-VITE_USE_MOCK_API=false
 ```
 
 Run backend checks:
@@ -45,7 +34,7 @@ npm.cmd --prefix backend test
 
 ## Notes
 
-1. `VITE_USE_MOCK_API=false` uses `src/services/backendApi.ts` for public data, bookings, admin snapshot, manager screens, content, and auth.
-2. Auth uses HttpOnly `sid` cookies, so frontend requests must keep `credentials: 'include'`.
-3. Default seeded users: `admin/admin123`, `manager/manager123`, trainer selection with `trainer123`.
-4. Frontend still expects `ApiResponse<T>` envelopes unless adapter maps responses.
+1. The frontend uses `src/services/backendApi.ts` through `src/services/api.ts`.
+2. Auth uses HttpOnly `sid` cookies, so frontend requests keep `credentials: 'include'`.
+3. Initial SQLite content is loaded from `backend/src/seed-data.js`.
+4. Default seeded users: `admin/admin123`, `manager/manager123`, trainer login with `trainer123`.

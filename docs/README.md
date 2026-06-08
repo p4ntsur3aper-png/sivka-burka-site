@@ -20,8 +20,6 @@ This folder contains planning artifacts and the backend handoff package.
 ## Integration baseline
 
 - UI consumes only `src/services/api.ts`.
-- API adapter switches by env:
-  - `VITE_USE_MOCK_API=true` -> `mockApi`
-  - `VITE_USE_MOCK_API=false` -> `backendApi`
+- `src/services/api.ts` exports backend API methods directly.
 - Base URL is `VITE_API_BASE_URL`.
-
+- Initial SQLite data is stored in `backend/src/seed-data.js`.

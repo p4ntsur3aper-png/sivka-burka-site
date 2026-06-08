@@ -52,7 +52,7 @@
 
 Приоритет: P0  
 Роль: Frontend Architect  
-Файлы: `src/types/index.ts`, `src/data/mockData.ts`
+Файлы: `src/types/index.ts`, `backend/src/seed-data.js`
 
 Что сделать:
 
@@ -63,7 +63,7 @@
 Критерии готовности:
 
 - Все новые типы экспортируются из `src/types/index.ts`.
-- Mock-данные содержат минимум главную страницу, галерею, правила, контакты.
+- Seed-данные содержат минимум главную страницу, галерею, правила, контакты.
 - Старые страницы продолжают работать.
 
 ### TASK-0102. Вынести content repository
@@ -119,7 +119,7 @@
 
 Приоритет: P0  
 Роль: Frontend Engineer  
-Файлы: `src/pages/HomePage.tsx`, `src/data/mockData.ts`
+Файлы: `src/pages/HomePage.tsx`, `backend/src/seed-data.js`
 
 Что сделать:
 
@@ -158,7 +158,7 @@
 
 Приоритет: P1  
 Роль: UI/UX + Frontend  
-Файлы: `src/pages/GalleryPage.tsx`, `src/types/index.ts`, `src/data/mockData.ts`
+Файлы: `src/pages/GalleryPage.tsx`, `src/types/index.ts`, `backend/src/seed-data.js`
 
 Что сделать:
 
@@ -295,7 +295,6 @@
 
 - backend не реализован в рамках этой части;
 - авторизация демонстрационная;
-- mock-данные хранятся в браузере;
+- исходные данные хранятся в SQLite;
 - frontend-проверка доступности не заменяет серверную;
 - загрузка файлов сейчас имитируется через браузерное хранилище.
-

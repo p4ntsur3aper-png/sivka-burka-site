@@ -51,7 +51,6 @@ npm run backend:dev
 
 ```powershell
 $env:VITE_API_BASE_URL="http://127.0.0.1:8090/api"
-$env:VITE_USE_MOCK_API="false"
 npm run dev -- --host 127.0.0.1 --port 5174
 ```
 
